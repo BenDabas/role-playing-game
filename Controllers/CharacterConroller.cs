@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace dotnet_rpg.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Player,Admin")]  // Now just player and admin role's can do that http request. // I Added Role claim in the token therefore the authorize know "Role". 
     [ApiController]
     [Route("[controller]")]
     public class CharacterController : ControllerBase

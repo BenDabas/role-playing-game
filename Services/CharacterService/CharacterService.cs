@@ -25,7 +25,9 @@ namespace dotnet_rpg.Services.CharacterService
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
+        // GetUserId and getUserRole find the role and the id by _httpContextAccessor .... from the token.
         private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        private string GetUserRole() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
         
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newAddCharacterDto)
         {
@@ -45,7 +47,13 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            var dbCharacters = await _context.Characters
+            var dbCharacters =
+                GetUserRole().Equals("Admin") ? 
+                await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
+                .ToListAsync() :
+                await _context.Characters
                 .Include(c => c.Weapon)  // To include the real values, there reference.
                 .Include(c => c.Skills) // Witout that the skills and the weapons not appear .
                 .Where(c => c.User.Id == GetUserId()).ToListAsync();
